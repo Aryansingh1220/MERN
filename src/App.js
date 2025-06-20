@@ -3,35 +3,36 @@ import Login from "./Login";
 import Home from "./Home";
 import AppLayout from "./layout/Applayout";
 import Dashboard from "./pages/Dashboard";
-// import { Nav } from "react-bootstrap";
-import { useState } from "react";
+import { useState,useEffect } from "react";
+import axios from 'axios';
+
 function App() {
-  const [userdetails,setUserDetails]=useState(null);
+  const [userDetails,setUserDetails] = useState(null);
 
-  const updateUserDetails=(UpdatedData)=>{
-    setUserDetails(UpdatedData);
+  const updateUserDetails = (updatedData) =>{
+    setUserDetails(updatedData);
   }
-  return (
-    
-      <Routes>
-        <Route path="/" element={userdetails ?
-          <Navigate to='/dashboard'/>:
-          <AppLayout>
-            <Home />
-          </AppLayout>
-        }/>
-        <Route path="/login" element={userdetails?
-          <Navigate to='/dashboard'/>:
-          <AppLayout>
-            <Login updateUserDetails={updateUserDetails} />
-          </AppLayout>
-        }/>
-        <Route path="/dashboard" element={userdetails ?
-          <Dashboard/>:
-          <Navigate to='/login' />
-        }/> 
 
+  const isUserLoggedIn = async () =>{
+    try{
+      const response = await axios.post('http://localhost:5000/auth/is-user-logged-in',{},{ withCredentials: true});
+      updateUserDetails(response.data.userDetails);
+    }catch(error){
+      console.log("Error checking user login status:", error);
+    }
+  }
+  useEffect(() => {
+    isUserLoggedIn();
+  },[]);
+
+  return (
+    // <AppLayout>
+      <Routes>
+        <Route path="/" element={userDetails ? <Navigate to ='/dashboard' />:<AppLayout><Home/></AppLayout>} />
+        <Route path="/login" element={userDetails ? <Navigate to='/dashboard'/> : <AppLayout><Login updateUserDetails={updateUserDetails} /></AppLayout>} />
+        <Route path="/dashboard" element={userDetails ? <AppLayout><Dashboard updateUserDetails={updateUserDetails}/></AppLayout> : <Navigate to='/login'/> }/>
       </Routes>
+    // // </AppLayout>
   );
 }
 

@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
-// import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 function Login({updateUserDetails}) {
-  // const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -37,30 +36,47 @@ function Login({updateUserDetails}) {
     return isValid;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async(event) => {
     event.preventDefault();
-    if(formData.email === "admin@gmail.com" && formData.password === "admin") {
-      updateUserDetails({
-        email: 'admin@gmail.com',
-        name: 'Admin',
-      });
-      // navigate("/dashboard");
-    } else{
-      setMessage("Invalid email or password");
-    }
+    // if(formData.email === "admin@gmail.com" && formData.password === "admin") {
+    //   updateUserDetails({
+    //     email: 'admin@gmail.com',
+    //     name: 'Admin',
+    //   });
+    //   // navigate("/dashboard");
+    // } else{
+    //   setMessage("Invalid email or password");
+    // }
 
     if (validateForm()) {
-      setMessage("Login successful!");
-      setError({});
-      console.log("Form Data Submitted:", formData);
-    } else {
-      setMessage("");
+      const body = {
+        email: formData.email,
+        password: formData.password,
+      };
+      const configuration = {
+        withCredentials: true
+      };
+      try{
+        const response = await axios.post('http://localhost:5000/auth/login', body,configuration );
+        updateUserDetails(response.data.userDetails);
+        console.log(response);
+      }catch(error){
+        setError({message:'Something went wrong!'});
+      }
+      
+    //   setMessage("Login successful!");
+    //   setError({});
+    //   console.log("Form Data Submitted:", formData);
+    // } else {
+    //   setMessage("");
+    // }
     }
   };
 
   return (
     <div className="container text-center mt-5">
       <h4>Login</h4>
+      {error.message && <div className="text-danger">{error.message}</div>}
       <form className="mx-auto w-50 mt-4" onSubmit={handleSubmit}>
         <div className="mb-3 text-start">
           <label htmlFor="email" className="form-label">Email:</label>
@@ -90,7 +106,7 @@ function Login({updateUserDetails}) {
           {error.password && <div className="text-danger">{error.password}</div>}
         </div>
 
-        <button type="submit" className="btn btn-primary w-100 mb-5">Login</button>
+        <button type="submit" className="btn btn-primary w-100 mb-4">Login</button>
 
         {message && <div className="text-success mt-3">{message}</div>}
       </form>
